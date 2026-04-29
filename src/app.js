@@ -24,6 +24,9 @@ app.use('/api/wishlist', wishlistRoutes);
 
 app.use(errorHandler);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+const PORT = process.env.PORT;
+if (!PORT) throw new Error('PORT environment variable is not set');
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
