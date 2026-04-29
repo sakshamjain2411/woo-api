@@ -11,7 +11,11 @@ export const mapProduct = (p) => ({
   shortDescription: p.short_description,
   categories: p.categories?.map((c) => ({ id: c.id, name: c.name, slug: c.slug })) ?? [],
   tags: p.tags?.map((t) => ({ id: t.id, name: t.name, slug: t.slug })) ?? [],
-  attributes: p.attributes,
+  attributes: p.attributes?.map((a) => ({
+    id: a.id,
+    name: a.name,
+    options: a.options
+  })) ?? [],
   variations: p.variations ?? [],
   stockStatus: p.stock_status,
   stockQuantity: p.stock_quantity,
@@ -62,12 +66,4 @@ export const mapCustomer = (c) => ({
   lastName: c.last_name,
   billingAddress: c.billing,
   shippingAddress: c.shipping
-});
-
-export const mapWishlistItem = (item) => ({
-  productId: item.productId,
-  name: item.name,
-  price: item.price,
-  image: item.image,
-  dateAdded: item.dateAdded
 });
