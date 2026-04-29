@@ -4,7 +4,11 @@ export const fetchProducts = async (params = {}) => {
   const res = await woo.get('/products', {
     params: { per_page: 20, ...params }
   });
-  return { data: res.data, total: res.headers['x-wp-total'], totalPages: res.headers['x-wp-totalpages'] };
+  return {
+    data: res.data,
+    total: parseInt(res.headers['x-wp-total'] ?? '0', 10),
+    totalPages: parseInt(res.headers['x-wp-totalpages'] ?? '0', 10)
+  };
 };
 
 export const fetchProductById = async (id) => {
