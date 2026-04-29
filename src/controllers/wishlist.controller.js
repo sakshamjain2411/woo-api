@@ -11,9 +11,9 @@ export const fetchWishlist = async (req, res, next) => {
 
 export const addWishlistItem = async (req, res, next) => {
   try {
-    const { productId } = req.body;
-    if (productId == null) {
-      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'productId is required', status: 400 } });
+    const productId = parseInt(req.body.productId, 10);
+    if (isNaN(productId)) {
+      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'productId must be a valid number', status: 400 } });
     }
     const items = await addToWishlist(req.customer.id, productId);
     res.status(201).json(items);
@@ -24,7 +24,11 @@ export const addWishlistItem = async (req, res, next) => {
 
 export const removeWishlistItem = async (req, res, next) => {
   try {
-    const items = await removeFromWishlist(req.customer.id, req.params.productId);
+    const productId = parseInt(req.params.productId, 10);
+    if (isNaN(productId)) {
+      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid productId', status: 400 } });
+    }
+    const items = await removeFromWishlist(req.customer.id, productId);
     res.json(items);
   } catch (err) {
     next(err);

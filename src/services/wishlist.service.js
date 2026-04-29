@@ -10,19 +10,23 @@ export const getWishlist = async (customerId) => {
 
   if (error) throw { status: 500, code: 'INTERNAL_ERROR', message: error.message };
 
-  const enriched = await Promise.all(
-    data.map(async (row) => {
-      const product = await fetchProductById(row.product_id);
-      const mapped = mapProduct(product);
-      return {
-        productId: mapped.id,
-        name: mapped.name,
-        price: mapped.price,
-        image: mapped.image,
-        dateAdded: row.date_added
-      };
+  const enriched = (await Promise.all(
+    (data ?? []).map(async (row) => {
+      try {
+        const product = await fetchProductById(row.product_id);
+        const mapped = mapProduct(product);
+        return {
+          productId: mapped.id,
+          name: mapped.name,
+          price: mapped.price,
+          image: mapped.image,
+          dateAdded: row.date_added
+        };
+      } catch {
+        return null;
+      }
     })
-  );
+  )).filter(Boolean);
 
   return enriched;
 };
