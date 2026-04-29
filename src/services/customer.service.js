@@ -12,8 +12,7 @@ export const registerCustomer = async ({ email, password, firstName, lastName })
   await woo.post('/customers', {
     email,
     first_name: firstName ?? '',
-    last_name: lastName ?? '',
-    password
+    last_name: lastName ?? ''
   });
 
   return data.user;
