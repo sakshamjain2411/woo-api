@@ -18,7 +18,7 @@ export const fetchCart = async (req, res, next) => {
 export const addItem = async (req, res, next) => {
   try {
     const { id, quantity, variation } = req.body;
-    if (!id || !quantity) {
+    if (id == null || quantity == null) {
       return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'id and quantity are required', status: 400 } });
     }
     const { data, cartToken } = await addCartItem(req.headers['cart-token'], { id, quantity, variation });
@@ -32,7 +32,7 @@ export const addItem = async (req, res, next) => {
 export const updateItem = async (req, res, next) => {
   try {
     const { quantity } = req.body;
-    if (!quantity) {
+    if (quantity == null) {
       return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'quantity is required', status: 400 } });
     }
     const { data, cartToken } = await updateCartItem(req.headers['cart-token'], req.params.key, quantity);
