@@ -12,14 +12,21 @@ import wishlistRoutes from './routes/wishlist.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:4200'];
 
-app.use(helmet());
-app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json());
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+    else cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
+app.use(express.json({ limit: '10kb' }));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
