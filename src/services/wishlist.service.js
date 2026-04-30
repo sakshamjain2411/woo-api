@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase.js';
-import { fetchProductById } from './product.service.js';
+import { fetchProductsByIds } from './product.service.js';
 import { mapProduct } from '../utils/mapper.js';
 
 export const getWishlist = async (customerId) => {
@@ -9,26 +9,26 @@ export const getWishlist = async (customerId) => {
     .eq('customer_id', customerId);
 
   if (error) throw { status: 500, code: 'INTERNAL_ERROR', message: error.message };
+  if (!data?.length) return [];
 
-  const enriched = (await Promise.all(
-    (data ?? []).map(async (row) => {
-      try {
-        const product = await fetchProductById(row.product_id);
-        const mapped = mapProduct(product);
-        return {
-          productId: mapped.id,
-          name: mapped.name,
-          price: mapped.price,
-          image: mapped.image,
-          dateAdded: row.date_added
-        };
-      } catch {
-        return null;
-      }
+  const rows = data;
+  const ids = rows.map(r => r.product_id);
+  const products = await fetchProductsByIds(ids);
+  const productMap = Object.fromEntries(products.map(p => [p.id, mapProduct(p)]));
+
+  return rows
+    .map(row => {
+      const mapped = productMap[row.product_id];
+      if (!mapped) return null;
+      return {
+        productId: mapped.id,
+        name: mapped.name,
+        price: mapped.price,
+        image: mapped.image,
+        dateAdded: row.date_added
+      };
     })
-  )).filter(Boolean);
-
-  return enriched;
+    .filter(Boolean);
 };
 
 export const addToWishlist = async (customerId, productId) => {

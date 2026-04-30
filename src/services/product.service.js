@@ -16,6 +16,12 @@ export const fetchProductById = async (id) => {
   return res.data;
 };
 
+export const fetchProductsByIds = async (ids) => {
+  if (!ids.length) return [];
+  const res = await woo.get('/products', { params: { include: ids.join(','), per_page: ids.length } });
+  return res.data;
+};
+
 export const fetchProductVariations = async (id) => {
   const res = await woo.get(`/products/${id}/variations`);
   return res.data;
