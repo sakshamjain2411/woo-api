@@ -1,7 +1,6 @@
 import {
   fetchProducts,
   fetchProductById,
-  fetchProductsByIds,
   fetchProductVariations,
   fetchCategories
 } from '../services/product.service.js';
