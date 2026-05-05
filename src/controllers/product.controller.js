@@ -2,20 +2,23 @@ import {
   fetchProducts,
   fetchProductById,
   fetchProductVariations,
-  fetchCategories
+  fetchCategories,
+  fetchAttributes
 } from '../services/product.service.js';
 import { mapProduct } from '../utils/mapper.js';
 
 export const listProducts = async (req, res, next) => {
   try {
-    const { category, search, page, per_page, orderby, order } = req.query;
+    const { category, search, page, per_page, orderby, order, attribute, attribute_term } = req.query;
     const params = {};
-    if (category)  params.category  = category;
-    if (search)    params.search    = search;
-    if (page)      params.page      = page;
-    if (per_page)  params.per_page  = per_page;
-    if (orderby)   params.orderby   = orderby;
-    if (order)     params.order     = order;
+    if (category)        params.category        = category;
+    if (search)          params.search          = search;
+    if (page)            params.page            = page;
+    if (per_page)        params.per_page        = per_page;
+    if (orderby)         params.orderby         = orderby;
+    if (order)           params.order           = order;
+    if (attribute)       params.attribute       = attribute;
+    if (attribute_term)  params.attribute_term  = attribute_term;
 
     const { data, total, totalPages } = await fetchProducts(params);
     res.json({ products: data.map(mapProduct), total, totalPages });
@@ -36,6 +39,15 @@ export const getProduct = async (req, res, next) => {
 export const getVariations = async (req, res, next) => {
   try {
     const data = await fetchProductVariations(req.params.id);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAttributes = async (req, res, next) => {
+  try {
+    const data = await fetchAttributes();
     res.json(data);
   } catch (err) {
     next(err);
