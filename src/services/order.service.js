@@ -1,10 +1,7 @@
 import { woo } from '../config/woo.js';
 
-export const fetchOrdersByEmail = async (email) => {
-  const customers = await woo.get('/customers', { params: { email } });
-  const wcCustomer = customers.data[0];
-  if (!wcCustomer) return [];
-  const res = await woo.get('/orders', { params: { customer: wcCustomer.id, per_page: 50 } });
+export const fetchOrdersByCustomerId = async (wooId) => {
+  const res = await woo.get('/orders', { params: { customer: wooId, per_page: 50 } });
   return res.data;
 };
 
