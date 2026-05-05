@@ -1,6 +1,24 @@
 import { supabase } from '../config/supabase.js';
 import { woo } from '../config/woo.js';
 
+export const getProfiles = async (status) => {
+  let query = supabase.from('profiles').select('*').order('created_at', { ascending: false });
+  if (status) query = query.eq('approval_status', status);
+  const { data, error } = await query;
+  if (error) throw { status: 500, code: 'INTERNAL_ERROR', message: error.message };
+  return data ?? [];
+};
+
+export const getProfile = async (supabaseUserId) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', supabaseUserId)
+    .single();
+  if (error || !data) throw { status: 404, code: 'NOT_FOUND', message: 'Profile not found' };
+  return data;
+};
+
 export const approveCustomer = async (supabaseUserId) => {
   const { data: profile } = await supabase
     .from('profiles')

@@ -25,7 +25,8 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) cb(null, true);
     else cb(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Cart-Token'],
 }));
 app.use(express.json({ limit: '10kb' }));
 
