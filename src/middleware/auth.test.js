@@ -79,4 +79,17 @@ describe('auth middleware', () => {
     expect(req.customer).toEqual({ id: 'uid-1', email: 'a@b.com', woo_customer_id: 42, is_admin: false });
     expect(mockNext).toHaveBeenCalled();
   });
+
+  it('allows admin users with null woo_customer_id through', async () => {
+    supabase.auth.getUser.mockResolvedValue({ data: { user: { id: 'uid-admin', email: 'admin@b.com' } }, error: null });
+    supabase.from.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { woo_customer_id: null, is_admin: true }, error: null })
+    });
+    const req = { headers: { authorization: 'Bearer admintoken' } };
+    await auth(req, mockRes, mockNext);
+    expect(req.customer).toEqual({ id: 'uid-admin', email: 'admin@b.com', woo_customer_id: null, is_admin: true });
+    expect(mockNext).toHaveBeenCalled();
+  });
 });
