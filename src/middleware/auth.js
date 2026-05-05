@@ -17,7 +17,31 @@ export const auth = async (req, res, next) => {
         error: { code: 'UNAUTHORIZED', message: 'Token expired or invalid', status: 401 }
       });
     }
-    req.customer = data.user;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('woo_customer_id, is_admin')
+      .eq('id', data.user.id)
+      .single();
+
+    if (!profile) {
+      return res.status(503).json({
+        error: { code: 'PROFILE_NOT_FOUND', message: 'User profile not found', status: 503 }
+      });
+    }
+
+    if (profile.woo_customer_id == null && !profile.is_admin) {
+      return res.status(503).json({
+        error: { code: 'WOO_ID_NOT_MAPPED', message: 'WooCommerce account not yet provisioned', status: 503 }
+      });
+    }
+
+    req.customer = {
+      id: data.user.id,
+      email: data.user.email,
+      woo_customer_id: profile.woo_customer_id,
+      is_admin: profile.is_admin
+    };
     next();
   } catch (err) {
     next(err);
