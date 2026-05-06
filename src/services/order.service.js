@@ -5,6 +5,11 @@ export const fetchOrdersByCustomerId = async (wooId) => {
   return res.data;
 };
 
+export const fetchAllOrders = async () => {
+  const res = await woo.get('/orders', { params: { per_page: 100 } });
+  return res.data;
+};
+
 export const fetchOrderById = async (id) => {
   const res = await woo.get(`/orders/${id}`);
   return res.data;

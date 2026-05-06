@@ -2,6 +2,7 @@ export const mapProduct = (p) => ({
   id: p.id,
   name: p.name,
   slug: p.slug,
+  featured: p.featured ?? false,
   price: p.price,
   regularPrice: p.regular_price,
   salePrice: p.sale_price,

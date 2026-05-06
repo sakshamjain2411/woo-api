@@ -4,6 +4,7 @@ import {
   getProduct,
   getVariations,
   getCategories,
+  getTags,
   getAttributes,
   multiFilterProducts,
 } from '../controllers/product.controller.js';
@@ -13,6 +14,7 @@ const router = express.Router();
 router.get('/multi-filter', multiFilterProducts);
 router.get('/', listProducts);
 router.get('/categories', getCategories);
+router.get('/tags', getTags);
 router.get('/attributes', getAttributes);
 router.get('/:id', getProduct);
 router.get('/:id/variations', getVariations);

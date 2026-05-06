@@ -59,6 +59,11 @@ export const fetchCategories = async () => {
   return res.data;
 };
 
+export const fetchTags = async () => {
+  const res = await woo.get('/products/tags', { params: { per_page: 100 } });
+  return res.data;
+};
+
 const ID_PAGE_SIZE = 100;
 const MAX_ID_PAGES = 5;
 
