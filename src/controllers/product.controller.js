@@ -3,7 +3,10 @@ import {
   fetchProductById,
   fetchProductVariations,
   fetchCategories,
-  fetchAttributes
+  fetchAttributes,
+  fetchAllProductIdsByAttribute,
+  fetchAllProductIdsByCategory,
+  fetchProductsByIds,
 } from '../services/product.service.js';
 import { mapProduct } from '../utils/mapper.js';
 
@@ -58,6 +61,41 @@ export const getCategories = async (req, res, next) => {
   try {
     const data = await fetchCategories();
     res.json(data.map(c => ({ id: c.id, name: c.name, slug: c.slug, count: c.count })));
+  } catch (err) {
+    next(err);
+  }
+};
+
+const FILTER_ATTRIBUTE_SLUGS = ['pa_colour', 'pa_shape', 'pa_weight-range'];
+
+export const multiFilterProducts = async (req, res, next) => {
+  try {
+    const { category, page = '1', per_page = '20', ...rest } = req.query;
+    const perPage = parseInt(per_page, 10);
+    const pageNum = parseInt(page, 10);
+
+    const activeAttributes = Object.entries(rest)
+      .filter(([slug]) => FILTER_ATTRIBUTE_SLUGS.includes(slug));
+
+    const idSets = await Promise.all(
+      activeAttributes.map(([slug, termIds]) => fetchAllProductIdsByAttribute(slug, termIds))
+    );
+
+    let intersected = idSets.length > 0
+      ? idSets.reduce((acc, ids) => acc.filter(id => ids.includes(id)))
+      : [];
+
+    if (category) {
+      const categoryIds = await fetchAllProductIdsByCategory(category);
+      intersected = intersected.filter(id => categoryIds.includes(id));
+    }
+
+    const total = intersected.length;
+    const totalPages = total > 0 ? Math.ceil(total / perPage) : 0;
+    const pageIds = intersected.slice((pageNum - 1) * perPage, pageNum * perPage);
+
+    const data = await fetchProductsByIds(pageIds);
+    res.json({ products: data.map(mapProduct), total, totalPages });
   } catch (err) {
     next(err);
   }
