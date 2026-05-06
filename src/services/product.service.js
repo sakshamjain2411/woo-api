@@ -62,32 +62,23 @@ export const fetchCategories = async () => {
 const ID_PAGE_SIZE = 100;
 const MAX_ID_PAGES = 5;
 
-export const fetchAllProductIdsByAttribute = async (attributeSlug, termIds) => {
+const fetchAllProductIds = async (extraParams) => {
   const ids = [];
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages && page <= MAX_ID_PAGES) {
     const res = await woo.get('/products', {
-      params: { attribute: attributeSlug, attribute_term: termIds, per_page: ID_PAGE_SIZE, page, _fields: 'id' }
+      params: { per_page: ID_PAGE_SIZE, page, _fields: 'id', ...extraParams }
     });
     ids.push(...res.data.map(p => p.id));
-    totalPages = parseInt(res.headers['x-wp-totalpages'] ?? '1', 10);
+    totalPages = parseInt(res.headers['x-wp-totalpages'] ?? '1', 10) || 1;
     page++;
   }
   return ids;
 };
 
-export const fetchAllProductIdsByCategory = async (categoryId) => {
-  const ids = [];
-  let page = 1;
-  let totalPages = 1;
-  while (page <= totalPages && page <= MAX_ID_PAGES) {
-    const res = await woo.get('/products', {
-      params: { category: categoryId, per_page: ID_PAGE_SIZE, page, _fields: 'id' }
-    });
-    ids.push(...res.data.map(p => p.id));
-    totalPages = parseInt(res.headers['x-wp-totalpages'] ?? '1', 10);
-    page++;
-  }
-  return ids;
-};
+export const fetchAllProductIdsByAttribute = (attributeSlug, termIds) =>
+  fetchAllProductIds({ attribute: attributeSlug, attribute_term: termIds });
+
+export const fetchAllProductIdsByCategory = (categoryId) =>
+  fetchAllProductIds({ category: categoryId });
