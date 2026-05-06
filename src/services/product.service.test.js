@@ -47,10 +47,10 @@ describe('fetchAllProductIdsByAttribute', () => {
     expect(woo.get).toHaveBeenCalledTimes(5);
   });
 
-  it('defaults to 1 page when x-wp-totalpages header is missing', async () => {
+  it('defaults to 1 page when x-wp-totalpages header is malformed', async () => {
     woo.get.mockResolvedValueOnce({
       data: [{ id: 99 }],
-      headers: {}
+      headers: { 'x-wp-totalpages': 'abc' }
     });
     const ids = await fetchAllProductIdsByAttribute('pa_colour', '524');
     expect(ids).toEqual([99]);
@@ -91,5 +91,15 @@ describe('fetchAllProductIdsByCategory', () => {
     const ids = await fetchAllProductIdsByCategory('12');
     expect(ids).toHaveLength(500);
     expect(woo.get).toHaveBeenCalledTimes(5);
+  });
+
+  it('defaults to 1 page when x-wp-totalpages header is missing', async () => {
+    woo.get.mockResolvedValueOnce({
+      data: [{ id: 42 }],
+      headers: {}
+    });
+    const ids = await fetchAllProductIdsByCategory('7');
+    expect(ids).toEqual([42]);
+    expect(woo.get).toHaveBeenCalledTimes(1);
   });
 });
