@@ -44,6 +44,10 @@ export const approveCustomer = async (supabaseUserId) => {
     .update({ woo_customer_id: wcCustomer.id, approval_status: 'approved' })
     .eq('id', supabaseUserId);
 
+  await supabase.auth.admin.updateUserById(supabaseUserId, {
+    app_metadata: { approval_status: 'approved', woo_customer_id: wcCustomer.id },
+  });
+
   return { message: 'approved', woo_customer_id: wcCustomer.id };
 };
 
@@ -52,6 +56,10 @@ export const rejectCustomer = async (supabaseUserId, reason) => {
     .from('profiles')
     .update({ approval_status: 'rejected', rejection_reason: reason ?? null })
     .eq('id', supabaseUserId);
+
+  await supabase.auth.admin.updateUserById(supabaseUserId, {
+    app_metadata: { approval_status: 'rejected' },
+  });
 
   return { message: 'rejected' };
 };

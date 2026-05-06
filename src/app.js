@@ -10,6 +10,7 @@ import cartRoutes from './routes/cart.routes.js';
 import customerRoutes from './routes/customer.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import requestRoutes from './routes/request.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -46,6 +47,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/customers', authLimiter, customerRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/requests', requestRoutes);
 
 app.use(errorHandler);
 

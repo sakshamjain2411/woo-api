@@ -20,7 +20,7 @@ export const auth = async (req, res, next) => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('woo_customer_id, is_admin')
+      .select('woo_customer_id, is_admin, full_name')
       .eq('id', data.user.id)
       .single();
 
@@ -39,6 +39,7 @@ export const auth = async (req, res, next) => {
     req.customer = {
       id: data.user.id,
       email: data.user.email,
+      full_name: profile.full_name ?? '',
       woo_customer_id: profile.woo_customer_id,
       is_admin: profile.is_admin
     };
