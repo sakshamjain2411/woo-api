@@ -1,8 +1,16 @@
 import express from 'express';
-import { listProducts, getProduct, getVariations, getCategories, getAttributes } from '../controllers/product.controller.js';
+import {
+  listProducts,
+  getProduct,
+  getVariations,
+  getCategories,
+  getAttributes,
+  multiFilterProducts,
+} from '../controllers/product.controller.js';
 
 const router = express.Router();
 
+router.get('/multi-filter', multiFilterProducts);
 router.get('/', listProducts);
 router.get('/categories', getCategories);
 router.get('/attributes', getAttributes);
