@@ -52,10 +52,28 @@ export const getInvoiceHandler = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+export const downloadInvoicePdfHandler = async (req, res, next) => {
+  try {
+    const pdf = await zoho.downloadInvoicePdf(req.params.id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invoice-${req.params.id}.pdf"`);
+    res.send(Buffer.from(pdf));
+  } catch (err) { next(err); }
+};
+
 export const sendInvoiceHandler = async (req, res, next) => {
   try {
     await zoho.sendInvoice(req.params.id);
     res.json({ message: 'Invoice sent' });
+  } catch (err) { next(err); }
+};
+
+export const markInvoiceStatusHandler = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    if (!['sent', 'paid', 'void'].includes(status)) return badRequest(res, 'status must be sent, paid, or void');
+    const result = await zoho.markInvoiceStatus(req.params.id, status);
+    res.json(result);
   } catch (err) { next(err); }
 };
 
@@ -99,8 +117,15 @@ export const sendQuoteHandler = async (req, res, next) => {
 export const updateQuoteStatusHandler = async (req, res, next) => {
   try {
     const { status } = req.body;
-    if (!['accepted', 'declined'].includes(status)) return badRequest(res, 'status must be accepted or declined');
+    if (!['sent', 'accepted', 'declined', 'void'].includes(status)) return badRequest(res, 'status must be sent, accepted, declined, or void');
     const quote = await zoho.updateQuoteStatus(req.params.id, status);
     res.json(quote);
+  } catch (err) { next(err); }
+};
+
+export const convertQuoteToInvoiceHandler = async (req, res, next) => {
+  try {
+    const invoice = await zoho.convertQuoteToInvoice(req.params.id);
+    res.status(201).json(invoice);
   } catch (err) { next(err); }
 };
