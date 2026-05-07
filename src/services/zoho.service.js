@@ -10,18 +10,30 @@ function zohoError(err) {
   return error;
 }
 
-async function getOrCreateContact(name, email) {
-  // Search for existing contact by email
+async function getOrCreateContact(name, email, details = {}) {
   const search = await zoho.get('/contacts', { params: { email } });
   const existing = search.data.contacts?.[0];
   if (existing) return existing.contact_id;
 
-  // Create new contact
-  const res = await zoho.post('/contacts', {
+  const body = {
     contact_name: name,
     contact_type: 'customer',
-    email,
-  });
+    ...(details.company ? { company_name: details.company } : {}),
+    contact_persons: [{ email, is_primary_contact: true, ...(details.phone ? { phone: details.phone } : {}) }],
+  };
+
+  if (details.billing) {
+    const b = details.billing;
+    body.billing_address = {
+      address: [b.address_1, b.address_2].filter(Boolean).join(', '),
+      city:    b.city,
+      state:   b.state,
+      zip:     b.postcode,
+      country: b.country,
+    };
+  }
+
+  const res = await zoho.post('/contacts', body);
   return res.data.contact.contact_id;
 }
 
@@ -81,7 +93,11 @@ export async function createInvoice(orderId) {
 
   try {
     const name = `${order.billing.first_name} ${order.billing.last_name}`.trim();
-    const customerId = await getOrCreateContact(name, order.billing.email);
+    const customerId = await getOrCreateContact(name, order.billing.email, {
+      phone:   order.billing.phone,
+      company: order.billing.company,
+      billing: order.billing,
+    });
 
     const payload = {
       customer_id: customerId,
@@ -123,9 +139,32 @@ export async function getInvoice(id) {
   }
 }
 
+export async function downloadInvoicePdf(id) {
+  try {
+    const res = await zoho.get(`/invoices/${id}`, {
+      params: { accept: 'pdf' },
+      responseType: 'arraybuffer',
+    });
+    return res.data;
+  } catch (err) {
+    throw zohoError(err);
+  }
+}
+
 export async function sendInvoice(id) {
   try {
-    await zoho.post(`/invoices/${id}/email`);
+    const inv = await zoho.get(`/invoices/${id}`);
+    const email = inv.data.invoice.email;
+    await zoho.post(`/invoices/${id}/email`, { to_mail_ids: [email] });
+  } catch (err) {
+    throw zohoError(err);
+  }
+}
+
+export async function markInvoiceStatus(id, status) {
+  try {
+    const res = await zoho.post(`/invoices/${id}/status/${status}`);
+    return res.data.invoice ?? res.data;
   } catch (err) {
     throw zohoError(err);
   }
@@ -134,22 +173,24 @@ export async function sendInvoice(id) {
 // ── Quotes (Estimates in Zoho Books) ─────────────────────────────────────────
 
 export async function createQuote(data) {
-  const payload = {
-    customer_name: data.customer_name,
-    email: data.customer_email,
-    line_items: data.line_items.map(item => ({
-      name: item.name,
-      description: item.description || '',
-      quantity: item.quantity,
-      rate: item.rate,
-    })),
-    ...(data.expiry_date ? { expiry_date: data.expiry_date } : {}),
-  };
-
   try {
+    const customerId = await getOrCreateContact(data.customer_name, data.customer_email);
+
+    const payload = {
+      customer_id: customerId,
+      line_items: data.line_items.map(item => ({
+        name: item.name,
+        description: item.description || '',
+        quantity: item.quantity,
+        rate: item.rate,
+      })),
+      ...(data.expiry_date ? { expiry_date: data.expiry_date } : {}),
+    };
+
     const res = await zoho.post('/estimates', payload);
     return res.data.estimate;
   } catch (err) {
+    if (err.code === 'ZOHO_API_ERROR') throw err;
     throw zohoError(err);
   }
 }
@@ -174,7 +215,9 @@ export async function getQuote(id) {
 
 export async function sendQuote(id) {
   try {
-    await zoho.post(`/estimates/${id}/email`);
+    const est = await zoho.get(`/estimates/${id}`);
+    const email = est.data.estimate.email;
+    await zoho.post(`/estimates/${id}/email`, { to_mail_ids: [email] });
   } catch (err) {
     throw zohoError(err);
   }
@@ -185,6 +228,31 @@ export async function updateQuoteStatus(id, status) {
     const res = await zoho.post(`/estimates/${id}/status/${status}`);
     return res.data.estimate;
   } catch (err) {
+    throw zohoError(err);
+  }
+}
+
+export async function convertQuoteToInvoice(estimateId) {
+  try {
+    const estRes = await zoho.get(`/estimates/${estimateId}`);
+    const est = estRes.data.estimate;
+
+    const payload = {
+      customer_id: est.customer_id,
+      reference_number: est.estimate_number,
+      currency_code: est.currency_code,
+      line_items: est.line_items.map(item => ({
+        name: item.name,
+        description: item.description || '',
+        quantity: item.quantity,
+        rate: item.rate,
+      })),
+    };
+
+    const invRes = await zoho.post('/invoices', payload);
+    return invRes.data.invoice;
+  } catch (err) {
+    if (err.code === 'ZOHO_API_ERROR') throw err;
     throw zohoError(err);
   }
 }
