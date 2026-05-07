@@ -8,6 +8,7 @@ import {
   fetchAllProductIdsByAttribute,
   fetchAllProductIdsByCategory,
   fetchProductsByIds,
+  fetchAllProductNames,
 } from '../services/product.service.js';
 import { mapProduct } from '../utils/mapper.js';
 
@@ -74,6 +75,15 @@ export const getTags = async (req, res, next) => {
   try {
     const data = await fetchTags();
     res.json(data.map(t => ({ id: t.id, name: t.name, slug: t.slug, count: t.count })));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAllProductNames = async (req, res, next) => {
+  try {
+    const data = await fetchAllProductNames();
+    res.json(data);
   } catch (err) {
     next(err);
   }

@@ -62,6 +62,7 @@ export async function createCustomInvoice(data) {
         description: item.description || '',
         quantity: item.quantity,
         rate: item.rate,
+        ...(item.unit ? { item_custom_fields: [{ api_name: 'cf_unit', value: item.unit }] } : {}),
       })),
       ...(data.due_date ? { due_date: data.due_date } : {}),
     };
@@ -183,6 +184,7 @@ export async function createQuote(data) {
         description: item.description || '',
         quantity: item.quantity,
         rate: item.rate,
+        ...(item.unit ? { item_custom_fields: [{ api_name: 'cf_unit', value: item.unit }] } : {}),
       })),
       ...(data.expiry_date ? { expiry_date: data.expiry_date } : {}),
     };
@@ -246,6 +248,7 @@ export async function convertQuoteToInvoice(estimateId) {
         description: item.description || '',
         quantity: item.quantity,
         rate: item.rate,
+        ...(item.unit ? { item_custom_fields: [{ api_name: 'cf_unit', value: item.unit }] } : {}),
       })),
     };
 

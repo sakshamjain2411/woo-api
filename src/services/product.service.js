@@ -64,6 +64,21 @@ export const fetchTags = async () => {
   return res.data;
 };
 
+export const fetchAllProductNames = async () => {
+  const results = [];
+  let page = 1;
+  let totalPages = 1;
+  while (page <= totalPages) {
+    const res = await woo.get('/products', {
+      params: { per_page: 100, page, _fields: 'id,name,price', status: 'publish' }
+    });
+    results.push(...res.data);
+    totalPages = parseInt(res.headers['x-wp-totalpages'] ?? '1', 10) || 1;
+    page++;
+  }
+  return results.map(p => ({ id: p.id, name: p.name, price: p.price }));
+};
+
 const ID_PAGE_SIZE = 100;
 const MAX_ID_PAGES = 5;
 
