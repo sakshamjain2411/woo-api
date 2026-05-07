@@ -7,10 +7,12 @@ import {
   getTags,
   getAttributes,
   multiFilterProducts,
+  getAllProductNames,
 } from '../controllers/product.controller.js';
 
 const router = express.Router();
 
+router.get('/names', getAllProductNames);
 router.get('/multi-filter', multiFilterProducts);
 router.get('/', listProducts);
 router.get('/categories', getCategories);
